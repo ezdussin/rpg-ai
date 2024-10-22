@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "es2017", // or "es2020", "es2021", etc.
+    "module": "esnext", // or "es2022", "node16", "nodenext", etc.
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
