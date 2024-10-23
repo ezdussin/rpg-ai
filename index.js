@@ -41,14 +41,106 @@ var generative_ai_1 = require("@google/generative-ai");
 var context_1 = require("./context");
 var character_1 = require("./character");
 var readline = require("readline");
+var components_1 = require("./components");
+var main = new character_1.Character();
 var genAI = new generative_ai_1.GoogleGenerativeAI("".concat(process.env.API_KEY));
-var model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", systemInstruction: context_1.default.game_context });
-var main = new character_1.Character("Roger", "Arcane Emporium", 20, "male", "none", { copperCoins: 3, ironCoins: 1, goldCoins: 1 }, "Native Portuguese", "Pretty poor past", []);
-var chat = model.startChat();
+var model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", systemInstruction: context_1.default.game_context(main) });
+var chat = model.startChat({
+    safetySettings: [
+        {
+            category: generative_ai_1.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+            threshold: generative_ai_1.HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+            category: generative_ai_1.HarmCategory.HARM_CATEGORY_HARASSMENT,
+            threshold: generative_ai_1.HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+            category: generative_ai_1.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+            threshold: generative_ai_1.HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+            category: generative_ai_1.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+            threshold: generative_ai_1.HarmBlockThreshold.BLOCK_NONE,
+        }
+    ]
+});
 var rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
 });
+var askQuestion = function (question) {
+    return new Promise(function (resolve) {
+        rl.question(question, function (answer) {
+            resolve(answer);
+        });
+    });
+};
+var playerCreation = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var nameInput, validSelection, _loop_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, askQuestion("Name: ")];
+            case 1:
+                nameInput = _a.sent();
+                if (typeof nameInput === 'string')
+                    main.name = nameInput;
+                validSelection = false;
+                _loop_1 = function () {
+                    var locationPrompt, locations, locationCounter, _i, _b, region, _c, _d, location_1, locationInput, selectedIndex_1, selectedLocation;
+                    return __generator(this, function (_e) {
+                        switch (_e.label) {
+                            case 0:
+                                locationPrompt = 'Location:\n';
+                                locations = [];
+                                locationCounter = 1;
+                                // Loop through regions and their locations
+                                for (_i = 0, _b = components_1.map.regions; _i < _b.length; _i++) {
+                                    region = _b[_i];
+                                    locationPrompt += "\n*** ".concat(region.name, "\n\n");
+                                    for (_c = 0, _d = region.locations; _c < _d.length; _c++) {
+                                        location_1 = _d[_c];
+                                        locationPrompt += "".concat(locationCounter, ". ").concat(location_1.name, "\n"); // Append location number
+                                        locations.push({ index: locationCounter, region: region.name, location: location_1.name }); // Store locations
+                                        locationCounter++; // Increment the counter for each location
+                                    }
+                                }
+                                return [4 /*yield*/, askQuestion(locationPrompt + "\nSelect a location by number: ")];
+                            case 1:
+                                locationInput = _e.sent();
+                                try {
+                                    if (typeof locationInput !== 'string')
+                                        throw Error();
+                                    selectedIndex_1 = parseInt(locationInput, 10);
+                                    selectedLocation = locations.find(function (loc) { return loc.index === selectedIndex_1; });
+                                    if (selectedLocation) {
+                                        main.location = selectedLocation.location;
+                                        console.log("You have selected: ".concat(main.location));
+                                        validSelection = true; // Set flag to true to exit the loop
+                                    }
+                                    else
+                                        throw Error();
+                                }
+                                catch (e) {
+                                    console.error("Invalid selection. Please try again."); // Prompt the user to try again
+                                }
+                                return [2 /*return*/];
+                        }
+                    });
+                };
+                _a.label = 2;
+            case 2:
+                if (!!validSelection) return [3 /*break*/, 4];
+                return [5 /*yield**/, _loop_1()];
+            case 3:
+                _a.sent();
+                return [3 /*break*/, 2];
+            case 4:
+                playing();
+                return [2 /*return*/];
+        }
+    });
+}); };
 var playing = function () { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         rl.question("Action: ", function (actionInput) { return __awaiter(void 0, void 0, void 0, function () {
@@ -67,4 +159,4 @@ var playing = function () { return __awaiter(void 0, void 0, void 0, function ()
         return [2 /*return*/];
     });
 }); };
-playing();
+playerCreation();
